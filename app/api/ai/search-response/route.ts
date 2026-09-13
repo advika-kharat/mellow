@@ -37,15 +37,14 @@ Rules:
 Answer:
 `;
 
-    const response = await fetch(  `${process.env.OLLAMA_HOST}/api/generate`,{
+    const response = await fetch(`${process.env.OLLAMA_HOST}/api/generate`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-              Authorization: `Bearer ${process.env.OLLAMA_API_KEY}`,
-
+        Authorization: `Bearer ${process.env.OLLAMA_API_KEY}`,
       },
       body: JSON.stringify({
-      model: `${process.env.OLLAMA_MODEL}`,
+        model: `${process.env.OLLAMA_MODEL}`,
         prompt,
         stream: false,
       }),
