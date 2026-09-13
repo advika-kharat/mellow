@@ -74,19 +74,22 @@ Do not mention that you are an AI.
 Be playful, specific, and slightly witty.
 `;
 
-  // Ask local Ollama
-  const ollamaResponse = await fetch("http://localhost:11434/api/generate", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      model: "gemma3:4b",
-      prompt,
-      stream: false,
-      format: "json",
-    }),
-  });
+  const ollamaResponse = await fetch(
+    `${process.env.OLLAMA_HOST}/api/generate`,
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${process.env.OLLAMA_API_KEY}`,
+      },
+      body: JSON.stringify({
+        model: `${process.env.OLLAMA_MODEL}`,
+        prompt,
+        stream: false,
+        format: "json",
+      }),
+    }
+  );
 
   if (!ollamaResponse.ok) {
     const error = await ollamaResponse.text();

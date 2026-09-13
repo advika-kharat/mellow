@@ -212,13 +212,14 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Missing query" }, { status: 400 });
     }
 
-    const response = await fetch("http://127.0.0.1:11434/api/generate", {
+    const response = await fetch(`${process.env.OLLAMA_HOST}/api/generate`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
+        Authorization: `Bearer ${process.env.OLLAMA_API_KEY}`,
       },
       body: JSON.stringify({
-        model: "gemma3:4b",
+        model: `${process.env.OLLAMA_MODEL}`,
         system: SYSTEM_PROMPT,
         prompt: query,
         stream: false,

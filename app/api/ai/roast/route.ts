@@ -208,15 +208,16 @@ Return ONLY the 3 sentences.`;
     let ollamaResponse: Response;
 
     try {
-      ollamaResponse = await fetch("http://127.0.0.1:11434/api/generate", {
+      ollamaResponse = await fetch(`${process.env.OLLAMA_HOST}/api/generate`, {
         method: "POST",
 
         headers: {
           "Content-Type": "application/json",
+          Authorization: `Bearer ${process.env.OLLAMA_API_KEY}`,
         },
 
         body: JSON.stringify({
-          model: "gemma3:4b",
+          model: `${process.env.OLLAMA_MODEL}`,
           prompt,
           stream: false,
 

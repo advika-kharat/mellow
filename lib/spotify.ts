@@ -6,7 +6,7 @@ export async function getSpotifyAccessToken() {
     SELECT refresh_token
     FROM spotify_accounts
     LIMIT 1
-    `,
+    `
   );
 
   if (!result.rows.length) {
