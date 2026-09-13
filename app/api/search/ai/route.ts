@@ -21,8 +21,13 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    const baseUrl =
+      process.env.NEXT_PUBLIC_APP_URL || request.nextUrl.origin;
+
+    console.log("Base URL:", baseUrl);
+
     // 1. Ask Qwen3 to understand the user's query
-    const planUrl = `${request.nextUrl.origin}/api/ai/query-plan`;
+    const planUrl = `${baseUrl}/api/ai/query-plan`;
 
     console.log("STEP 1: Calling query planner");
     console.log("Query planner URL:", planUrl);
@@ -61,7 +66,7 @@ export async function POST(request: NextRequest) {
     );
 
     // 2. Execute the validated query plan
-    const executeUrl = `${request.nextUrl.origin}/api/search/execute`;
+    const executeUrl = `${baseUrl}/api/search/execute`;
 
     console.log("STEP 2: Executing query plan");
     console.log("Execution URL:", executeUrl);
@@ -100,8 +105,7 @@ export async function POST(request: NextRequest) {
     );
 
     // 3. Generate a natural-language answer
-    // from the retrieved evidence
-    const responseUrl = `${request.nextUrl.origin}/api/ai/search-response`;
+    const responseUrl = `${baseUrl}/api/ai/search-response`;
 
     console.log("STEP 3: Calling AI response generator");
     console.log("AI response URL:", responseUrl);
@@ -142,10 +146,6 @@ export async function POST(request: NextRequest) {
       responseData.answer
     );
 
-    // IMPORTANT:
-    // Return the original execution results unchanged.
-    // Do not let the natural-language response model
-    // modify or replace the structured evidence.
     console.log("AI SEARCH COMPLETE");
 
     return NextResponse.json({
