@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { toBlob } from "html-to-image";
-import Nav from "../components/Nav";
+import SpotifyAuth from "@/app/components/SpotifyAuth";
 
 type PersonaData = {
   persona: {
@@ -46,6 +46,7 @@ export default function PersonaPage() {
   const [data, setData] = useState<PersonaData | null>(null);
   const [loading, setLoading] = useState(true);
   const [sharing, setSharing] = useState(false);
+  const [authRequired, setAuthRequired] = useState(false);
 
   const shareRef = useRef<HTMLDivElement>(null);
 
@@ -56,6 +57,12 @@ export default function PersonaPage() {
           fetch("/api/ai/persona"),
           fetch("/api/spotify/top"),
         ]);
+
+        // User is not connected to Spotify
+        if (personaRes.status === 401 || topRes.status === 401) {
+          setAuthRequired(true);
+          return;
+        }
 
         if (!personaRes.ok) {
           throw new Error(`Persona API failed: ${personaRes.status}`);
@@ -123,9 +130,7 @@ export default function PersonaPage() {
           ...persona,
           stats: {
             ...persona.stats,
-
             topArtists,
-
             topTracks,
           },
         });
@@ -193,11 +198,14 @@ export default function PersonaPage() {
     }
   }
 
+  // Spotify authentication required
+  if (authRequired) {
+    return <SpotifyAuth />;
+  }
+
   if (loading) {
     return (
       <main className="min-h-screen bg-[#080808] text-white">
-        <Nav />
-
         <div className="flex min-h-[80vh] items-center justify-center">
           <div className="text-center">
             <div className="mb-4 text-[10px] uppercase tracking-[0.35em] text-[#c8ff00]">
@@ -216,11 +224,11 @@ export default function PersonaPage() {
   if (!data) {
     return (
       <main className="min-h-screen bg-[#080808] text-white">
-        <Nav />
-
         <div className="flex min-h-[80vh] items-center justify-center px-6">
           <div className="text-center">
-            <div className="mb-4 text-2xl font-bold">Something went wrong.</div>
+            <div className="mb-4 text-2xl font-bold">
+              Something went wrong.
+            </div>
 
             <div className="text-sm text-white/40">
               Mellow couldn't generate your persona.
@@ -235,8 +243,6 @@ export default function PersonaPage() {
 
   return (
     <main className="min-h-screen bg-[#080808] text-white">
-      <Nav />
-
       <div ref={shareRef}>
         {/* HERO */}
         <section className="border-b border-white/10 px-6 pb-24 pt-16 md:px-10 md:pb-32 md:pt-24">

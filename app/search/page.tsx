@@ -3,6 +3,7 @@
 import { FormEvent, useState } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
+import SpotifyAuth from "@/app/components/SpotifyAuth";
 
 type EntityType = "track" | "artist" | "play";
 
@@ -41,6 +42,7 @@ export default function SearchPage() {
   const [entity, setEntity] = useState<EntityType>("track");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [authRequired, setAuthRequired] = useState(false);
 
   async function handleSearch(e?: FormEvent) {
     e?.preventDefault();
@@ -51,6 +53,7 @@ export default function SearchPage() {
     setError("");
     setAnswer("");
     setResults([]);
+    setAuthRequired(false);
 
     try {
       const response = await fetch("/api/search/ai", {
@@ -63,7 +66,15 @@ export default function SearchPage() {
         }),
       });
 
-      const data: SearchResponse & { error?: string } = await response.json();
+      // Spotify connection is required.
+      // Do NOT treat this as a normal search error.
+      if (response.status === 401) {
+        setAuthRequired(true);
+        return;
+      }
+
+      const data: SearchResponse & { error?: string } =
+        await response.json();
 
       if (!response.ok) {
         throw new Error(data.error || "Search failed");
@@ -73,7 +84,9 @@ export default function SearchPage() {
       setResults(data.results || []);
       setEntity(data.plan?.entity || "track");
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Something went wrong.");
+      setError(
+        err instanceof Error ? err.message : "Something went wrong."
+      );
     } finally {
       setLoading(false);
     }
@@ -117,9 +130,13 @@ export default function SearchPage() {
     }
   }
 
+  // Spotify authentication required.
+  if (authRequired) {
+    return <SpotifyAuth />;
+  }
+
   return (
     <main className="min-h-screen bg-[#080808] text-white">
-      {" "}
       <div className="mx-auto max-w-[1200px] px-5 py-16 md:px-8 md:py-24">
         {/* Header */}
         <section className="mb-16 md:mb-20">
@@ -249,52 +266,42 @@ export default function SearchPage() {
 
               <div
                 className="
-              max-w-4xl
-              text-2xl
-              font-medium
-              leading-relaxed
-              tracking-[-0.02em]
-              md:text-4xl
-
-              [&_p]:mb-5
-              [&_p:last-child]:mb-0
-
-              [&_strong]:font-bold
-              [&_strong]:text-white
-
-              [&_em]:italic
-
-              [&_ul]:my-5
-              [&_ul]:list-disc
-              [&_ul]:pl-7
-
-              [&_ol]:my-5
-              [&_ol]:list-decimal
-              [&_ol]:pl-7
-
-              [&_li]:mb-2
-
-              [&_h1]:mb-5
-              [&_h1]:text-3xl
-              [&_h1]:font-bold
-              md:[&_h1]:text-5xl
-
-              [&_h2]:mb-4
-              [&_h2]:mt-8
-              [&_h2]:text-2xl
-              [&_h2]:font-bold
-              md:[&_h2]:text-4xl
-
-              [&_h3]:mb-3
-              [&_h3]:mt-6
-              [&_h3]:text-xl
-              [&_h3]:font-bold
-
-              [&_code]:bg-white/[0.06]
-              [&_code]:px-1.5
-              [&_code]:py-0.5
-              [&_code]:text-[0.85em]
-            "
+                  max-w-4xl
+                  text-2xl
+                  font-medium
+                  leading-relaxed
+                  tracking-[-0.02em]
+                  md:text-4xl
+                  [&_p]:mb-5
+                  [&_p:last-child]:mb-0
+                  [&_strong]:font-bold
+                  [&_strong]:text-white
+                  [&_em]:italic
+                  [&_ul]:my-5
+                  [&_ul]:list-disc
+                  [&_ul]:pl-7
+                  [&_ol]:my-5
+                  [&_ol]:list-decimal
+                  [&_ol]:pl-7
+                  [&_li]:mb-2
+                  [&_h1]:mb-5
+                  [&_h1]:text-3xl
+                  [&_h1]:font-bold
+                  md:[&_h1]:text-5xl
+                  [&_h2]:mb-4
+                  [&_h2]:mt-8
+                  [&_h2]:text-2xl
+                  [&_h2]:font-bold
+                  md:[&_h2]:text-4xl
+                  [&_h3]:mb-3
+                  [&_h3]:mt-6
+                  [&_h3]:text-xl
+                  [&_h3]:font-bold
+                  [&_code]:bg-white/[0.06]
+                  [&_code]:px-1.5
+                  [&_code]:py-0.5
+                  [&_code]:text-[0.85em]
+                "
               >
                 <ReactMarkdown remarkPlugins={[remarkGfm]}>
                   {answer}
@@ -309,25 +316,10 @@ export default function SearchPage() {
 
               <button
                 onClick={shareInsight}
-                className="
-              flex
-              items-center
-              gap-2
-              border
-              border-white/15
-              px-4
-              py-2.5
-              text-[10px]
-              font-medium
-              uppercase
-              tracking-[0.16em]
-              text-white/60
-              transition-all
-              hover:border-[#c8ff00]/50
-              hover:text-[#c8ff00]
-            "
+                className="flex items-center gap-2 border border-white/15 px-4 py-2.5 text-[10px] font-medium uppercase tracking-[0.16em] text-white/60 transition-all hover:border-[#c8ff00]/50 hover:text-[#c8ff00]"
               >
                 Share insight
+
                 <svg
                   width="14"
                   height="14"
@@ -409,7 +401,9 @@ export default function SearchPage() {
                         <p className="mt-1 truncate text-xs text-white/35">
                           {entity === "artist" ? (
                             `${result.play_count ?? 0} ${
-                              Number(result.play_count) === 1 ? "play" : "plays"
+                              Number(result.play_count) === 1
+                                ? "play"
+                                : "plays"
                             }`
                           ) : (
                             <>
@@ -425,7 +419,9 @@ export default function SearchPage() {
                         {result.play_count !== undefined && (
                           <p className="text-xs text-white/50">
                             {result.play_count}{" "}
-                            {Number(result.play_count) === 1 ? "play" : "plays"}
+                            {Number(result.play_count) === 1
+                              ? "play"
+                              : "plays"}
                           </p>
                         )}
 

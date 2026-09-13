@@ -1,9 +1,8 @@
-import Nav from "./components/Nav";
 
 export default function Home() {
   return (
     <main className="min-h-screen bg-[#080808] text-white overflow-hidden selection:bg-[#c8ff00] selection:text-black">
-      <Nav />
+     
 
       <div className="max-w-[1400px] mx-auto px-5 md:px-8">
         {/* HERO */}

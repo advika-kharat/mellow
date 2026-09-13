@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import Nav from "../components/Nav";
+import SpotifyAuth from "@/app/components/SpotifyAuth";
 
 type HistoryData = {
   snapshots: number;
@@ -32,11 +32,18 @@ export default function HistoryPage() {
   const [data, setData] = useState<HistoryData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [authRequired, setAuthRequired] = useState(false);
 
   useEffect(() => {
     fetch("/api/spotify/history")
       .then(async (res) => {
         const result = await res.json();
+
+        // Spotify authentication is required.
+        if (res.status === 401) {
+          setAuthRequired(true);
+          return;
+        }
 
         if (!res.ok) {
           throw new Error(result.error || "Something went wrong");
@@ -45,12 +52,17 @@ export default function HistoryPage() {
         setData(result);
       })
       .catch((err) => {
-        setError(err.message);
+        setError(err instanceof Error ? err.message : "Something went wrong.");
       })
       .finally(() => {
         setLoading(false);
       });
   }, []);
+
+  // Spotify authentication required.
+  if (authRequired) {
+    return <SpotifyAuth />;
+  }
 
   if (loading) {
     return (
@@ -94,8 +106,6 @@ export default function HistoryPage() {
 
   return (
     <main className="min-h-screen bg-[#080808] text-white overflow-hidden">
-      <Nav />
-
       <div className="max-w-[1400px] mx-auto px-5 md:px-8">
         {/* HERO */}
         <section className="relative min-h-[560px] md:min-h-[620px] flex flex-col justify-between py-10 md:py-14 border-b border-white/10 overflow-hidden">
@@ -273,7 +283,6 @@ export default function HistoryPage() {
                     {String(index + 1).padStart(2, "0")}
                   </span>
 
-                  {/* ARTIST IMAGE */}
                   {artist.image ? (
                     <img
                       src={artist.image}
@@ -335,7 +344,6 @@ export default function HistoryPage() {
                       {String(index + 1).padStart(2, "0")}
                     </span>
 
-                    {/* ALBUM ART */}
                     {track.image ? (
                       <img
                         src={track.image}
@@ -368,7 +376,6 @@ export default function HistoryPage() {
                   </span>
                 </div>
 
-                {/* PLAY FREQUENCY */}
                 <div className="mt-8 flex items-center gap-1">
                   {Array.from({
                     length: Math.min(track.plays, 12),

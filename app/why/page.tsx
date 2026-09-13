@@ -1,7 +1,6 @@
 "use client";
 
 import { useRef, useState } from "react";
-import Nav from "@/app/components/Nav";
 
 type Track = {
   id: string;
@@ -152,7 +151,7 @@ export default function WhyPage() {
 
   return (
     <main className="min-h-screen bg-[#080808] text-white">
-      <Nav />
+
 
       <div className="mx-auto max-w-5xl px-5 pb-24 pt-14 md:px-10 md:pt-20">
         {/* HEADER */}
